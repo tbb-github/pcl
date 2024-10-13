@@ -1,0 +1,47 @@
+.three-views {
+    position: absolute;
+    z-index: 100;
+    width: 20%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    /* background-color: rgba(255, 0, 0, 0.1); */
+}
+.svg-line{
+    stroke-dasharray: 3,3;
+    /* stroke: rgba(255, 0, 0, 1); */
+    stroke: rgba(0, 0, 0, 0);
+    stroke-width: 1px;
+    stroke-opacity: 1;
+}
+.line-handle {
+    /* fill: rgba(255, 0, 0, 1); */
+    fill: rgba(0, 0, 0, 0); 
+}
+
+.ew-handle:hover{
+	cursor: ew-resize;/*右左(东西)*/
+}
+
+.ns-handle:hover{
+	cursor: ns-resize;/*上下(北南)*/
+}
+
+
+.nw-handle:hover{
+	cursor: nw-resize;
+}
+.ne-handle:hover{
+	cursor: ne-resize;
+}
+
+.sw-handle:hover{
+	cursor: sw-resize;
+}
+
+.se-handle:hover{
+	cursor: se-resize;
+}
+.grab-handle:hover{
+	cursor: grab;
+}

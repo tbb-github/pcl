@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/ThreeViews.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "../libs/threejs/168/build/three.module.js",
+            "three/addons/": "../libs/threejs/168/jsm/"
+          }
+        }
+        </script>
+    <script type="module">
+       import * as THREE from 'three';
+       import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+       import { ThreeViews } from '../js/ThreeViews.js';
+
+       const scene = new THREE.Scene();  
+        // 创建立方体几何体  
+        const geometry = new THREE.BoxGeometry(1,1,1);  
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });  
+        const cube = new THREE.Mesh(geometry, material);  
+        cube.scale.x = 4;
+        cube.scale.y = 2;
+        cube.scale.z = 1;
+        cube.position.x = 3;
+        cube.position.y = 2;
+        cube.position.z = 1;
+        cube.rotation.x = 1;
+        cube.rotation.y = 2;
+        cube.rotation.z = 3;
+        scene.add(cube);  
+
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+        camera.position.set(0, 0, 10)
+        camera.lookAt(0, 0, 0)
+            
+        // 创建渲染器  
+        const renderer = new THREE.WebGLRenderer({antialias: true });  
+        renderer.setSize(window.innerWidth, window.innerHeight);  
+        renderer.setScissorTest(true); // 启用剪裁测试  
+        document.body.appendChild(renderer.domElement);  
+
+        const orbitControls = new OrbitControls(camera, renderer.domElement);
+        orbitControls.addEventListener('change', ()=>{
+            renderer.render(scene, camera)
+        })
+
+
+        
+        const viewsConfig = [
+            { 
+                type: "top",
+                camera: null , 
+                clear: true ,
+                backgroundColor: 'rgba(25,25,51, 1)',
+                left: 0,
+                top: 0,
+                widthRatio:0.2,
+                heightRatio:0.3,
+                width:null,
+                height:null,
+                aspect:null,
+                zoomRatio: 1
+            },  
+            { 
+                type: "right",
+                camera: null,
+                clear: true ,
+                backgroundColor: 'rgba(25,51,25, 1)',
+                left: 0,
+                top:0.3,
+                widthRatio:0.2,
+                heightRatio:0.3,
+                width:null,
+                height:null,
+                aspect:null,
+                zoomRatio: 1
+            },  
+            { 
+            type: "front",
+            camera: null, 
+            clear: true ,
+            backgroundColor: 'rgba(51,25,25, 1)',
+            left: 0,
+            top: 0.6,
+            widthRatio:0.2,
+            heightRatio:0.3,
+            width:null,
+            height:null,
+            aspect:null,
+            zoomRatio: 1
+        }  
+        ]
+      
+        
+        const asp = viewsConfig[0].aspect;
+        const halfHeight = 3;
+        for (let i = 0; i <  viewsConfig.length; i++) {
+            const view = viewsConfig[i];
+            view.width = Math.ceil(view.widthRatio * window.innerWidth);
+            view.height = Math.ceil(view.heightRatio * window.innerHeight);
+            view.aspect = view.width/view.height;
+            const camera = new THREE.OrthographicCamera( -halfHeight*view.aspect, halfHeight*view.aspect, halfHeight, -halfHeight, -halfHeight, halfHeight);
+            view.camera = camera;
+        }
+        const threeViews = new ThreeViews(viewsConfig, renderer, document.body, cube);
+
+
+        function animate() {  
+            requestAnimationFrame(animate);  
+            renderer.setScissor( 0, 0, window.innerWidth, window.innerHeight);
+            renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight);
+            renderer.clear(); // 清除渲染器的颜色、深度和模板缓冲区  
+            renderer.setClearColor('rgba(0,0,0,1)');
+            renderer.render(scene, camera);
+            for (let i = 0; i <  viewsConfig.length; i++) {
+                const view = viewsConfig[i];
+                renderer.setViewport(view.left, (1 - view.top - view.heightRatio) * window.innerHeight, view.width , view.height ); // 设置渲染器的视口  
+                renderer.setScissor(view.left, (1 - view.top - view.heightRatio) * window.innerHeight , view.width , view.height ); // 设置渲染器的剪裁区域  
+                renderer.setClearColor(view.backgroundColor );
+                renderer.render(scene, view.camera); // 渲染场景和相机  
+            }
+        }  
+        animate();  
+    </script>
+</body>
+</html>
