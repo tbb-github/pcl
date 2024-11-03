@@ -5,6 +5,7 @@
     height: 100%;
     left: 0;
     top: 0;
+    outline: none;
     /* background-color: rgba(255, 0, 0, 0.1); */
 }
 .svg-line{
@@ -45,3 +46,8 @@
 .grab-handle:hover{
 	cursor: grab;
 }
+
+.view-manipulator:focus {
+    outline: none;
+}
+

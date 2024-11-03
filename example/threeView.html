@@ -14,6 +14,7 @@
     </style>
 </head>
 <body>
+
     <script type="importmap">
         {
           "imports": {
@@ -32,20 +33,19 @@
         const geometry = new THREE.BoxGeometry(1,1,1);  
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });  
         const cube = new THREE.Mesh(geometry, material);  
-        cube.scale.x = 4;
-        cube.scale.y = 2;
-        cube.scale.z = 1;
-        cube.position.x = 3;
-        cube.position.y = 2;
-        cube.position.z = 1;
-        cube.rotation.x = 1;
-        cube.rotation.y = 2;
-        cube.rotation.z = 3;
+        cube.scale.x = 8;
+        cube.scale.y = 6;
+        cube.scale.z = 3;
+        cube.position.x = 0;
+        cube.position.y = 0;
+        cube.position.z = 0;
+        cube.rotation.x = 0;
+        cube.rotation.y = 0;
+        cube.rotation.z = 0;
         scene.add(cube);  
-
-
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
         camera.position.set(0, 0, 10)
+        camera.up.set(0, 0, 1)
         camera.lookAt(0, 0, 0)
             
         // 创建渲染器  
@@ -69,8 +69,12 @@
                 backgroundColor: 'rgba(25,25,51, 1)',
                 left: 0,
                 top: 0,
+                leftDistance: 0,
+                topDistance: 0,
                 widthRatio:0.2,
                 heightRatio:0.3,
+                viewBoxHeight:null,
+                viewBoxWidth:null,
                 width:null,
                 height:null,
                 aspect:null,
@@ -83,8 +87,12 @@
                 backgroundColor: 'rgba(25,51,25, 1)',
                 left: 0,
                 top:0.3,
+                leftDistance: 0,
+                topDistance: 0,
                 widthRatio:0.2,
                 heightRatio:0.3,
+                viewBoxHeight:null,
+                viewBoxWidth:null,
                 width:null,
                 height:null,
                 aspect:null,
@@ -97,8 +105,12 @@
             backgroundColor: 'rgba(51,25,25, 1)',
             left: 0,
             top: 0.6,
+            leftDistance: 0,
+            topDistance: 0,
             widthRatio:0.2,
             heightRatio:0.3,
+            viewBoxHeight:null,
+            viewBoxWidth:null,
             width:null,
             height:null,
             aspect:null,
@@ -114,10 +126,12 @@
             view.width = Math.ceil(view.widthRatio * window.innerWidth);
             view.height = Math.ceil(view.heightRatio * window.innerHeight);
             view.aspect = view.width/view.height;
+            view.leftDistance = view.left * window.innerWidth;
+            view.topDistance = view.top * window.innerHeight;
             const camera = new THREE.OrthographicCamera( -halfHeight*view.aspect, halfHeight*view.aspect, halfHeight, -halfHeight, -halfHeight, halfHeight);
             view.camera = camera;
         }
-        const threeViews = new ThreeViews(viewsConfig, renderer, document.body, cube);
+        const threeViews = new ThreeViews(viewsConfig, document.body, cube);
 
 
         function animate() {  
@@ -129,8 +143,8 @@
             renderer.render(scene, camera);
             for (let i = 0; i <  viewsConfig.length; i++) {
                 const view = viewsConfig[i];
-                renderer.setViewport(view.left, (1 - view.top - view.heightRatio) * window.innerHeight, view.width , view.height ); // 设置渲染器的视口  
-                renderer.setScissor(view.left, (1 - view.top - view.heightRatio) * window.innerHeight , view.width , view.height ); // 设置渲染器的剪裁区域  
+                renderer.setViewport(view.left * window.innerWidth, (1 - view.top - view.heightRatio) * window.innerHeight, view.width , view.height ); // 设置渲染器的视口  
+                renderer.setScissor(view.left * window.innerWidth, (1 - view.top - view.heightRatio) * window.innerHeight , view.width , view.height ); // 设置渲染器的剪裁区域  
                 renderer.setClearColor(view.backgroundColor );
                 renderer.render(scene, view.camera); // 渲染场景和相机  
             }
