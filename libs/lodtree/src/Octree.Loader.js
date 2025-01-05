@@ -76,6 +76,7 @@ export class OctreeLoader {
         octreeGeometry.root = root;
         let loader = new NodeLoader(url);
         loader.load(root);//
+        octreeGeometry.loader = loader;
         let octree = new Octree(octreeGeometry);
      
 

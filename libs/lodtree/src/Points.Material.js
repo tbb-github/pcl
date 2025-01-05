@@ -4,9 +4,10 @@
  *   根节点：八叉树的起始节点
  *   整个空间大小box
  */
-export class OctreeMaterial
+import {RawShaderMaterial} from '../library/three.module.js';
+export class PointsMaterial extends RawShaderMaterial
 {
     constructor() {
-
+        super()
     }
 }

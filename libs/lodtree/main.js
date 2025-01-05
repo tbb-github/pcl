@@ -1,7 +1,7 @@
 import {LodTree} from './src/LodTree.js';
 import * as THREE from './library/three.module.js'
 import { OrbitControls } from './library/OrbitControls.js';
-document.body.onload = function () {
+document.body.onload = async function () {
 
     const scene = new THREE.Scene();
 	const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
@@ -31,11 +31,12 @@ document.body.onload = function () {
     let pointClouds = [];
     let baseUrl = '../public/pump';
     let url = 'metadata.json';
-    let pco = loadTree.loadPointCloud(url, ()=>{return `${baseUrl}/${url}`});
+    let pco = await loadTree.loadPointCloud(url, ()=>{return `${baseUrl}/${url}`});
     pointClouds.push(pco);
+	console.log(pointClouds, 'pointClouds');
     function loop()
 	{
-		// potree.updatePointClouds(pointClouds, camera, renderer);
+		loadTree.updatePointClouds(pointClouds, camera, renderer);
 		controls.update();
 		renderer.render(scene, camera);
 		requestAnimationFrame(loop);

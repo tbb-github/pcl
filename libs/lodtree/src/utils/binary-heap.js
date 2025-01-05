@@ -15,7 +15,7 @@ BinaryHeap.prototype = {
     // Allow it to bubble up.
     this.bubbleUp(this.content.length - 1);
   },
-
+  // 返回content内第一个元素，根据最大堆性质，最大在最后，所以这里是返回最低得分
   pop: function() {
     // Store the first element so we can return it later.
     var result = this.content[0];

@@ -13,6 +13,7 @@ export class OctreeGeometryNode {
         this.parent = null;
         this.loaded = false;
         this.loading = false;
+        this.geometry = null;
     }
     addChild(child) 
 	{
@@ -20,4 +21,28 @@ export class OctreeGeometryNode {
 		this.isLeafNode = false;
 		child.parent = this;
 	}
+    /**
+        !(P && Q) 等价于 !P || !Q
+        !(P || Q) 等价于 !P && !Q
+     */
+    load() {
+        if (this.loading || this.loaded ) {
+            return;
+        }
+        try {
+            this.loading = true;
+            this.pcoGeometry.numNodesLoading++;
+            this.pcoGeometry.needsUpdate = true;
+            return this.octreeGeometry.loader.load(this);
+        } catch(e) {
+            this.loading = false;
+			this.failed = true;
+			this.pcoGeometry.numNodesLoading--;
+        }
+       
+    }
+
+
+
+
 }
