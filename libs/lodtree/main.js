@@ -12,6 +12,8 @@ document.body.onload = async function () {
 	canvas.style.left = '0px';
 	canvas.style.width = '100%';
 	canvas.style.height = '100%';
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
 	document.body.appendChild(canvas);
 	const controls = new OrbitControls(camera, canvas);
 	camera.position.z = 10;
@@ -33,9 +35,15 @@ document.body.onload = async function () {
     let url = 'metadata.json';
     let pco = await loadTree.loadPointCloud(url, ()=>{return `${baseUrl}/${url}`});
     pointClouds.push(pco);
-	console.log(pointClouds, 'pointClouds');
+	let index = 0;
     function loop()
 	{
+		++index;
+		if (index > 400) {
+			return;
+		}
+		console.log(index, 'indexindexindexindexindexindexindexindexindex');
+		
 		loadTree.updatePointClouds(pointClouds, camera, renderer);
 		controls.update();
 		renderer.render(scene, camera);

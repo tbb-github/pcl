@@ -30,7 +30,6 @@ import {PointAttributes, PointAttributeTypes, PointAttribute} from './PointAttri
 export class OctreeLoader {
 
     async load(url) {
-        console.log(url, 'urlurl');
 		let response = await fetch(url);
 		let metadata = await response.json();
         /**
@@ -43,7 +42,6 @@ export class OctreeLoader {
                 在某些情况下，offset可能用于表示点云数据相对于某个参考点或参考坐标系的偏移量。
          * scale通常是一个包含三个元素的数组（例如[sx, sy, sz]），分别代表在X、Y、Z三个方向上对点云数据进行缩放的因子。这些缩放因子允许用户根据需要调整点云数据的整体尺寸，以便更好地适应可视化需求或分析目的。
          */
-        console.log(metadata, 'metadata');
         // 1.根据metadata数据，构建八叉树，八叉树对象 - material geometry
         // 我们这里只构建几何体
         // 1.1 几何体，存放当前八叉树空间大小box
@@ -52,6 +50,7 @@ export class OctreeLoader {
         let min = new THREE.Vector3(...metadata.boundingBox.min);
         let max = new THREE.Vector3(...metadata.boundingBox.max);
         let boundingBox = new THREE.Box3(min, max);
+
         octreeGeometry.boundingBox = boundingBox.clone();
         octreeGeometry.spacing = metadata.spacing;// 点云间隔
         octreeGeometry.scale = metadata.scale;// scale 还不知作用
@@ -71,12 +70,13 @@ export class OctreeLoader {
         // 在网络通信中，ByteOffset和ByteSize用于确定数据包的起始位置和数据长度。这有助于确保数据的完整性和顺序
 		root.byteOffset = BigInt(0); // Originally 0
         root.spacing = metadata.spacing;// 点云点间隔
-        root.offset = 
-        console.log(root, 'root');
+        root.offset = offset;
+        root.nodeType = 2;
         octreeGeometry.root = root;
         let loader = new NodeLoader(url);
         loader.load(root);//
         octreeGeometry.loader = loader;
+
         let octree = new Octree(octreeGeometry);
      
 
@@ -95,7 +95,6 @@ export class OctreeLoader {
             //                   size = numElements*elementSize
             // this.byteSize = this.numElements * this.type.size;
             let type = typeMap[jsonAttribute.type];
-            console.log(type,'type');
             let potreeAttributeName = replacements[name] ? replacements[name]: name;
             // console.log(potreeAttributeName, type, numElements, 'potreeAttributeName, type, numElements');
             let attribute = new PointAttribute(potreeAttributeName, type, numElements);

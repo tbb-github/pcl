@@ -21,6 +21,7 @@
   */
 import {OctreeGeometryNode} from './Octree.Geometry.Node.js';
 import * as THREE from '../library/three.module.js'
+let set = new Set();
 export class NodeLoader {
     constructor(url) {
         this.url = url;
@@ -36,7 +37,10 @@ export class NodeLoader {
 		node.octreeGeometry.numNodesLoading++;
         try {
             // 加载 hierarchy
-            await this.loadHierarchy(node);
+            if (node.nodeType === 2) {
+                await this.loadHierarchy(node);
+            }
+       
             // 加载octree.bin
             let {byteOffset, byteSize} = node;
             if (byteOffset === undefined || byteSize === undefined) {
@@ -64,8 +68,7 @@ export class NodeLoader {
             let size = box.max.clone().sub(box.min);//因为传过来的box都减去了offset(min) 所以size还是用box.max-box.min 得到size既可
             let max = min.clone().add(size);//原始最大值就是用原始最小值加上size
             let numPoints = node.numPoints;
-            let nodeOffset = node.octreeGeometry.nodeOffset;  
-            console.log(nodeOffset, 'nodeOffset');                                 
+            let nodeOffset = node.octreeGeometry.nodeOffset;                                
             // worker
             /**
              * 创建 Web Worker
@@ -128,6 +131,11 @@ export class NodeLoader {
                     node.density = data.density;
                     node.geometry = geometry;
                     node.loaded = true;
+                    set.add(node.name);
+                    let myArray = Array.from(set);
+                    myArray = myArray.sort(); 
+                    console.log(myArray, node.name + '<<<请求返回完成');
+                    
                     node.loading = false;
                 }
             };
@@ -149,7 +157,6 @@ export class NodeLoader {
     // 加载层级
     async loadHierarchy(node) {
         let {hierarchyByteOffset, hierarchyByteSize} = node;
-
 		if (hierarchyByteOffset === undefined || hierarchyByteSize === undefined) 
 		{
 			throw new Error(`hierarchyByteOffset and hierarchyByteSize are undefined for node ${node.name}`);
@@ -157,6 +164,8 @@ export class NodeLoader {
         let first = hierarchyByteOffset;
         let last = first + hierarchyByteSize - BigInt(1)
         let url = this.url.replace('metadata.json', 'hierarchy.bin');
+      
+        
         let respose = await fetch(url, {
             headers: {
                 'content-type': 'multipart/byteranges',
@@ -170,7 +179,6 @@ export class NodeLoader {
     }
     buildOctree(node, buffer) {
         // 
-    
         let dataView = new DataView(buffer);
         let bytesPerNode = 22;//每个节点上的字节数;
         let nodesNum = buffer.byteLength/ bytesPerNode;//节点数量
@@ -192,8 +200,8 @@ export class NodeLoader {
                 current.numPoints = numPoints;
             } else if (type === 2) {
                 // 表示buffer里面的这个节点是 hierarchy层级节点
-                current.hierarchyBypeOffset = byteOffset;
-                current.hierarchyBypeSize = byteSize;
+                current.hierarchyByteOffset = byteOffset;
+                current.hierarchyByteSize = byteSize;
                 current.numPoints =numPoints;
             } else {
                 current.byteOffset = byteOffset;

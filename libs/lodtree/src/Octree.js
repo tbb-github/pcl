@@ -12,21 +12,50 @@ export class Octree extends Object3D {
         super();
         this.geometry = octreeGeometry;
         this.material = material || new PointsMaterial();
-        this.updateMatrix();
-        this.minNodePixelSize = 50;
+        this.position.copy(octreeGeometry.offset);;//offset min值
+		this.updateMatrix();
     }
     toTreePoints(node, parent) {
         // console.log(node, this.material, 'vvv');
         const points = new Points(node.geometry, this.material);
 		points.name = node.name;
 		points.position.copy(node.boundingBox.min);
+		node.isTreePoints = true;
+		node.points = points;
+		node.isGeometryNode = false;
         if (parent) {
             console.log('parent');
             parent.points.add(points);//父元素的points点集添加子元素点集
+			parent.children[node.index] = node;
         } else {
-            console.log('points');
-            node.points = points;
+			this.root = node;
+			this.add(points);
+			console.log(node.name, 'ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo');
+			
         }
     }
+    updateMatrixWorld(force) 
+	{
+		if (this.matrixAutoUpdate === true) 
+		{
+			this.updateMatrix();
+		}
+
+		if (this.matrixWorldNeedsUpdate === true || force === true) 
+		{
+			if (!this.parent) 
+			{
+				this.matrixWorld.copy(this.matrix);
+			}
+			else 
+			{
+				this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
+			}
+
+			this.matrixWorldNeedsUpdate = false;
+
+			force = true;
+		}
+	}
 
 }

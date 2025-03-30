@@ -67,7 +67,6 @@ self.onmessage = function(event) {
 				positions[3*j + 1] = y;
 				positions[3*j + 2] = z;
 			}
-			console.log(buff, 'buff');
 			attributeBuffers[pointAttribute.name] = {
 				buffer: buff,
 				attribute: pointAttribute
