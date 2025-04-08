@@ -12,6 +12,7 @@ export class OctreeGeometryNode {
 		this.boundingBox = boundingBox;
         this.boundingSphere = boundingBox.getBoundingSphere(new THREE.Sphere());
         this.isLeafNode = true;
+        this.maxNumNodesLoading = 3;//最大node加载数量，估计怕cpu处理不过来
         this.children = [		
             null,
             null,
@@ -34,31 +35,14 @@ export class OctreeGeometryNode {
 		this.isLeafNode = false;
 		child.parent = this;
 	}
-    /**
-        !(P && Q) 等价于 !P || !Q
-        !(P || Q) 等价于 !P && !Q
-     */
     load() {
-        // console.log(this.name, this.loading, this.loaded, '------------');
-        
-        // if (this.loading || this.loaded ) {
-        //     return;
-        // }
-        // try {
-        //     this.loading = true;
-        //     this.octreeGeometry.numNodesLoading++;
-        //     this.octreeGeometry.needsUpdate = true;
-        //     return this.octreeGeometry.loader.load(this);
-        // } catch(e) {
-        //     this.loading = false;
-		// 	this.failed = true;
-		// 	this.octreeGeometry.numNodesLoading--;
-        // }
-        this.octreeGeometry.loader.load(this);
-       
+
+		if (this.octreeGeometry.numNodesLoading >= this.octreeGeometry.maxNumNodesLoading) 
+        {
+            return;
+        }
+        if (this.octreeGeometry.loader) {
+            this.octreeGeometry.loader.load(this);
+        }
     }
-
-
-
-
 }

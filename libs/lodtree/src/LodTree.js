@@ -27,8 +27,8 @@ export class LodTree {
         if (url === 'metadata.json') {
             const loader = new OctreeLoader();
             const trueUrl = getUrl(url);
-            const {geometry} = await loader.load(trueUrl);
-            return new Octree(geometry);
+            const octree = await loader.load(trueUrl);
+            return octree;
         }
     }
 
@@ -37,35 +37,28 @@ export class LodTree {
 			pointClouds,
 			camera,
 		);
-        // 从此循环都从r根节点开始
-
-        // console.log(priorityQueue.pop(), 'priorityQueue');
+        // 每次循环都从r根节点开始
         let queueItem;
         let nodesToLoad = [];
 		let loadedToGPUThisFrame = 0;
         while((queueItem = priorityQueue.pop()) !== undefined) 
         {
-      
-    
             let node = queueItem.node;
-            console.log(node.name, 'nodenodenodenodenodenodenodenodenodenodenodenodenodenode');
             const parentNode = queueItem.parent;
- 
 			const pointCloudIndex = queueItem.pointCloudIndex;
 			const pointCloud = pointClouds[pointCloudIndex];
-            if (node.isGeometryNode && (!parentNode || parentNode.isTreePoints)) {
+            // isGeometryNode判断当前node是否还是node类型，true表示还没有toTreePoints
+            // 并且如果parentNode不存在或者当前节点的父节点已经toTreePoints了就如此
+            if (node.isGeometryNode && (!parentNode || !parentNode.isGeometryNode)) {
+                // MAX_LOADS_TO_GPU怕GPU处理toTreePoints不过来加入限制
                 if (node.loaded && loadedToGPUThisFrame < MAX_LOADS_TO_GPU ) {
                     loadedToGPUThisFrame++;
-                    pointCloud.toTreePoints(node, parentNode);
-                    console.log(node.name +'>>>loaded----');
-                    
+                    pointCloud.toTreePoints(node, parentNode);//将当前节点转为Points
                 } else if (!node.failed) 
                 {
                     nodesToLoad.push(node);
-                    console.log(node.name +'>>>ToLoad----');
                 }
             }
-
             // getSize ( target : Vector2 ) : Vector2  
             // target — the result will be copied into this Vector2.
 			const halfHeight = 0.5 * renderer.getSize(this._rendererSize).height * renderer.getPixelRatio();
@@ -80,7 +73,6 @@ export class LodTree {
                 .multiply(inverseWorldMatrix)
                 .multiply(camera.matrixWorld);
             cameraPosition.setFromMatrixPosition(cameraMatrix)
-            // console.log(priorityQueue, 'priorityQueue');
             // 从根节点开始，找子节点
             this.updateChildVisibility(
                 node,
@@ -90,14 +82,10 @@ export class LodTree {
                 halfHeight,
                 cameraPosition
 			);
-        
-            
         }
-        // console.log(nodesToLoad, 'nodesToLoad');
         const numNodesToLoad = Math.min(this.maxNumNodesLoading, nodesToLoad.length);
 		for (let i = 0; i < numNodesToLoad; i++) 
 		{
-            console.log(nodesToLoad[i].name +'>>>发起加载请求');
 			nodesToLoad[i].load();
 		}
 
@@ -166,10 +154,7 @@ export class LodTree {
 
 			// Nodes which are larger will have priority in loading/displaying.
 			const weight = distance < radius ? Number.MAX_VALUE : screenPixelRadius + 1 / distance;
-
-            
             priorityQueue.push(new QueueItem(queueItem.pointCloudIndex, weight, child, node));
-            console.log(weight, child.name, 'childchildchild');
         }
     }
 

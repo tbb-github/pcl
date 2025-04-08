@@ -21,7 +21,7 @@
   */
 import {OctreeGeometryNode} from './Octree.Geometry.Node.js';
 import * as THREE from '../library/three.module.js'
-let set = new Set();
+let result = []
 export class NodeLoader {
     constructor(url) {
         this.url = url;
@@ -59,6 +59,8 @@ export class NodeLoader {
                         'Range': `bytes=${first}-${last}`
                     }
                 })
+                result.push([first,last])
+                console.log(result, 'resultresult');
                 buffer = await response.arrayBuffer();
             }
             let pointAttributes = node.octreeGeometry.pointAttributes;
@@ -77,7 +79,10 @@ export class NodeLoader {
             并且有一个主线程脚本 ***.js
             * 
             */
-            let worker = new Worker('./worker.js');// 创建一个新的 Worker 实例，指向 worker.js 文件，也即开启一个后台线程
+     
+            let  worker = new Worker('./worker.js');// 创建一个新的 Worker 实例，指向 worker.js 文件，也即开启一个后台线程
+            
+
 
             // 主线程向 Worker 发送消息
             let message = {
@@ -131,11 +136,6 @@ export class NodeLoader {
                     node.density = data.density;
                     node.geometry = geometry;
                     node.loaded = true;
-                    set.add(node.name);
-                    let myArray = Array.from(set);
-                    myArray = myArray.sort(); 
-                    console.log(myArray, node.name + '<<<请求返回完成');
-                    
                     node.loading = false;
                 }
             };
@@ -172,13 +172,14 @@ export class NodeLoader {
                 'Range': `bytes=${first}-${last}`
             }
         });
+ 
+        
         let buffer = await respose.arrayBuffer();//arraybuffer
         this.buildOctree(node, buffer);
 
 	
     }
     buildOctree(node, buffer) {
-        // 
         let dataView = new DataView(buffer);
         let bytesPerNode = 22;//每个节点上的字节数;
         let nodesNum = buffer.byteLength/ bytesPerNode;//节点数量
@@ -233,21 +234,17 @@ export class NodeLoader {
                 // 取nodes第9个元素节点， 即r根节点的第一个子节点r0的子节点的第一个r01,生成r0等后的8个子节点r01*(也不一定有8个取决于r的子网掩码),push到nodes中                              
                 // ...
                 let childName = current.name + childIndex;
-                // console.log(current, 'current');
                 let childBox = this.createChildAABB(current.boundingBox, childIndex);
-                // console.log(childBox, 'childBox');
                 let childOctreeNode = new OctreeGeometryNode(childName, octree, childBox);
                 childOctreeNode.spacing = current.spacing / 2;
                 childOctreeNode.level = current.level + 1;
                 childOctreeNode.parent = current;
                 current.children[childIndex] = childOctreeNode;
-                // console.log(childOctreeNode, 'childOctreeNode');
                 nodes[nodePos] = childOctreeNode;
                 nodePos++;
             }
            
         }
-        // console.log(nodes, 'nodes');
     }
     createChildAABB(aabb, index) {
         let min = aabb.min.clone();

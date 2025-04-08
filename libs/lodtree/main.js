@@ -35,15 +35,8 @@ document.body.onload = async function () {
     let url = 'metadata.json';
     let pco = await loadTree.loadPointCloud(url, ()=>{return `${baseUrl}/${url}`});
     pointClouds.push(pco);
-	let index = 0;
     function loop()
 	{
-		++index;
-		if (index > 400) {
-			return;
-		}
-		console.log(index, 'indexindexindexindexindexindexindexindexindex');
-		
 		loadTree.updatePointClouds(pointClouds, camera, renderer);
 		controls.update();
 		renderer.render(scene, camera);

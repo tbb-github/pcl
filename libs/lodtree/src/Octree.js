@@ -20,7 +20,6 @@ export class Octree extends Object3D {
         const points = new Points(node.geometry, this.material);
 		points.name = node.name;
 		points.position.copy(node.boundingBox.min);
-		node.isTreePoints = true;
 		node.points = points;
 		node.isGeometryNode = false;
         if (parent) {
@@ -30,8 +29,6 @@ export class Octree extends Object3D {
         } else {
 			this.root = node;
 			this.add(points);
-			console.log(node.name, 'ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo');
-			
         }
     }
     updateMatrixWorld(force) 
