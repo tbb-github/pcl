@@ -125,7 +125,7 @@ export class LodTree {
 				const perspective = camera;
 				const fov = perspective.fov * Math.PI / 180.0;
 				const slope = Math.tan(fov / 2.0);
-                // 3D世界中的实际高度 h/distance = slope(Math.tan(fov / 2.0) => h = slope*distance
+                // 3D世界中的实际高度 h/distance = slope(Math.tan(fov / 2.0)) => h = slope*distance
 				projectionFactor = halfHeight / (slope * distance);
                 // 使用视口的一半高度、斜率和距离来计算投影因子
                 // 物体在屏幕上占据的像素高度(视口的一半高度)与其3D世界中的实际高度(半个点云高度， 视线内能看完整点云)之间的比例。

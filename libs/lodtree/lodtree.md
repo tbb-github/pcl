@@ -139,10 +139,11 @@ updatePointClouds(pointClouds, camera, renderer) {
 ```
 
 
-
+每次requestAnimationFrame,都会从根节点开始遍历子节点构建二叉堆
+如果一个while内遍历了所有节点以及子节点，某些节点还没有请求加载完，就会等待下一帧的while,已经请求完成并toTreePoints的不会在被添加到nodesToLoad中
 
 ```
-    updateVisibility(pointClouds, camera, renderer) {
+   updateVisibility(pointClouds, camera, renderer) {
         const {frustums, priorityQueue} = this.updateVisibilityStructures(
 			pointClouds,
 			camera,
@@ -151,19 +152,24 @@ updatePointClouds(pointClouds, camera, renderer) {
         let queueItem;
         let nodesToLoad = [];
 		let loadedToGPUThisFrame = 0;
+        //如果一个while内遍历了所有节点以及子节点，某些节点还没有请求加载完，就会等待下一帧的while,已经请求完成并toTreePoints的不会在被添加到nodesToLoad中
+        // priorityQueue.pop() 从二叉堆取出要节点并删除掉，防止重复处理
         while((queueItem = priorityQueue.pop()) !== undefined) 
         {
             let node = queueItem.node;
             const parentNode = queueItem.parent;
 			const pointCloudIndex = queueItem.pointCloudIndex;
 			const pointCloud = pointClouds[pointCloudIndex];
-            if (node.isGeometryNode && (!parentNode || parentNode.isTreePoints)) {
+            // isGeometryNode判断当前node是否还是node类型，true表示还没有toTreePoints，已经toTreePoints的,不会进入if，所以不会在nodesToLoad
+            // 并且如果parentNode不存在或者当前节点的父节点已经toTreePoints了就如此
+            if (node.isGeometryNode && (!parentNode || !parentNode.isGeometryNode)) {
+                // MAX_LOADS_TO_GPU怕GPU处理toTreePoints不过来加入限制
                 if (node.loaded && loadedToGPUThisFrame < MAX_LOADS_TO_GPU ) {
                     loadedToGPUThisFrame++;
-                    pointCloud.toTreePoints(node, parentNode);
+                    pointCloud.toTreePoints(node, parentNode);//将当前节点转为Points
                 } else if (!node.failed) 
                 {
-                    nodesToLoad.push(node);
+                    nodesToLoad.push(node);//node没有加载，被添加到待加载队列中
                 }
             }
             // getSize ( target : Vector2 ) : Vector2  
@@ -198,5 +204,77 @@ updatePointClouds(pointClouds, camera, renderer) {
 
     }
 ```
+将node子节点，根据权重如下，添加到二叉堆中
+屏幕像素 半径越大 或 距离越近 ，权重越大，从而有更高的渲染优先级
 
+
+```
+updateChildVisibility(node, camera, queueItem, priorityQueue, halfHeight, cameraPosition) {
+        const children = node.children;
+		for (let i = 0; i < children.length; i++) 
+		{
+			const child = children[i];
+			if (child == null) 
+			{
+				continue;
+			}
+            const sphere = child.boundingSphere;
+            
+			const distance = sphere.center.distanceTo(cameraPosition);
+            // boundingBox min max 都减了min 所以cameraPosition要乘pointCloud.matrixWorld(min)
+            // 物体（例如球体 sphere）的属性（如中心点 sphere.center）通常是在物体的局部坐标系中定义的。
+            // 如果直接使用原生相机位置（世界空间中的位置），你需要先将物体的局部坐标转换到世界空间，或者将相机的世界坐标转换到物体的局部空间。
+			const radius = sphere.radius;//点云半径
+
+
+            let projectionFactor = 0.0;
+            /*
+            //视线长度：相机视点到目标点的距离
+            const sightLen = position.clone().sub(target).length()
+            //视椎体垂直夹角的一半(弧度)
+            const halfFov = fov * Math.PI / 360
+            //目标平面的高度
+            const targetHeight = sightLen * Math.tan(halfFov) * 2
+            //目标平面与画布的高度比
+            const ratio = targetHeight / clientHeight
+            */
+			if (camera.type === 'PerspectiveCamera') 
+			{
+				const perspective = camera;
+				const fov = perspective.fov * Math.PI / 180.0;
+				const slope = Math.tan(fov / 2.0);
+                // 3D世界中的实际高度 h/distance = slope(Math.tan(fov / 2.0)) => h = slope*distance
+				projectionFactor = halfHeight / (slope * distance);
+                // 使用视口的一半高度、斜率和距离来计算投影因子
+                // 物体在屏幕上占据的像素高度(视口的一半高度)与其3D世界中的实际高度(半个点云高度， 视线内能看完整点云)之间的比例。
+			}
+			else 
+			{
+                // 对于正交相机，由于投影是平行的，物体的大小在屏幕上不随距离变化。因此，projectionFactor 的计算相对简单。
+				const orthographic = camera;
+				projectionFactor = 2 * halfHeight / (orthographic.top - orthographic.bottom);
+                // 使用视口的一半高度和相机的垂直尺寸（orthographic.top - orthographic.bottom）来计算投影因子。这个因子表示了物体在屏幕上占据的像素高度与其3D世界中的实际高度之间的固定比例。
+			}
+
+            // projectionFactor = 物体在屏幕上占据的像素高度(视口的一半高度)/点云半个高度(点云半径)
+            const screenPixelRadius = radius * projectionFactor;（物体在屏幕上占据的像素高度）
+
+            // 判断是否渲染该节点：
+			// 如果球体的屏幕像素半径小于预设的最小节点像素大小（pointCloud.minNodePixelSize），则不添加该节点进行渲染，以节省资源。
+			if (screenPixelRadius < this.minNodePixelSize) 
+			{
+				continue;
+			}
+            // 确定渲染优先级：
+            // 对于大于最小像素大小的节点，根据它们的屏幕像素半径和距离来确定渲染的优先级。
+            // 如果目标(node节点)距离相机小于其半径（即目标部分或全部在相机视锥体内），则给其一个非常高的优先级（Number.MAX_VALUE），可能意味着这些目标(node节点)会优先被加载或渲染。
+            // 对于其他节点，使用屏幕像素半径加上距离的倒数作为权重，屏幕像素 半径越大 或 距离越近(点云中心离相机位置的距离) ，权重越大，从而有更高的渲染优先级。
+
+			// Nodes which are larger will have priority in loading/displaying.
+			const weight = distance < radius ? Number.MAX_VALUE : screenPixelRadius + 1 / distance;
+            priorityQueue.push(new QueueItem(queueItem.pointCloudIndex, weight, child, node));
+        }
+    }
+
+```
 ### 1.3
