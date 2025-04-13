@@ -1,0 +1,32 @@
+{
+    /*
+        tsconfig.json 是ts编译器的配置文件，ts编译器根据它的信息来对代码进行编译
+    */
+    "include": [
+        "./src/**/*"
+    ],
+    // "exclude": [
+    //     "./src/hello/**/*"
+    // ]
+    /*
+         compilerOptions 编译器的选项 在compilerOptions中包含多个子选项，用来完成对编译的配置
+    */
+    "compilerOptions":{
+        "target": "ES6",
+         "module": "ES6",//ES6
+        //  "lib": ["ES6", "DOM"],//一般不需要改，只有在不是浏览器环境，如node中才需要弄。
+         "outDir": "./dist",
+        //  "outFile": "dist/app.js",//一般交给打包工具，了解下即可
+         "allowJs":true,//include 是指编译src下所有目录下的ts，如果还要编译js使用 allowJs
+          "checkJs":true,//会检查js里面的内容是否符合ts语法
+          "removeComments":true,
+        //   "noEmit":true,//true开启不对代码进行编译
+        // "noEmitOnError": true//true 当有错误时不进行编译
+        "sourceMap":true,
+        "alwaysStrict": true,//如果有import export 默认就是严格模式
+        "noImplicitAny":true,// 函数参数如果没有设置类型，会报错
+        "noImplicitThis":true,
+        "strictNullChecks":true,
+        "strict": true//严格检查总开关
+        }
+}

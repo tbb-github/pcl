@@ -1,5 +1,5 @@
 
-import {PointsMaterial} from './Points.Material.js';
+import {PointsMaterial} from './materials/Points.Material.js';
 import {Object3D,Points} from '../library/three.module.js';
 /**
  * OctreeMesh对象
