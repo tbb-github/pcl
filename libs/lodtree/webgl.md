@@ -94,6 +94,41 @@ vColor.xyz = color.xyz;
 顶点在裁剪空间中的位置=投影矩阵 * 视图矩阵 * 模型矩阵 * 顶点的初始点位 
 
 
+### 2.1 矩阵传递到顶点着色器
+
+方法 1: 使用 Three.js 自动绑定的 Uniforms
+
+Three.js 的 ShaderMaterial 或 RawShaderMaterial 提供了一些默认的 uniform 变量，例如：
+
+- modelMatrix
+- viewMatrix
+- projectionMatrix
+- normalMatrix
+- modelViewMatrix
+
+modelMatrix
+- 表示模型空间到世界空间的变换矩阵。
+- 如果你的对象需要在世界空间中移动、旋转或缩放，则需要传递这个矩阵。
+
+viewMatrix
+- 表示从世界空间到相机（视图）空间的变换矩阵。
+- 如果你需要定义相机的位置和方向，则需要传递这个矩阵。
+
+projectionMatrix
+- 表示从相机空间到裁剪空间的投影变换矩阵。
+- 通常用于定义透视投影或正交投影。几乎所有的 3D 渲染都需要传递这个矩阵。
+
+modelViewMatrix
+- 是 modelMatrix 和 viewMatrix 的组合，表示从模型空间直接到相机空间的变换。
+- 如果你已经在 CPU 端将 modelMatrix 和 viewMatrix 相乘并传递结果，则可以直接使用这个矩阵，否则需要分别传递 modelMatrix 和 viewMatrix。
+
+normalMatrix
+- 用于变换法线向量，通常是 modelViewMatrix 的左上角 3x3 矩阵的逆转置。
+- 在光照计算中，如果法线需要正确地变换到相机空间，则需要传递这个矩阵。
+
+如果你使用的是 ShaderMaterial，这些矩阵会被自动传递到着色器中，无需手动设置。
+
+
 ## 3.片元着色器
 
 ### 3.1 对比 gl_FragColor 和 out vec4 fragColor

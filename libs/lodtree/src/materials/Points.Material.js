@@ -22,6 +22,24 @@ export class PointsMaterial extends RawShaderMaterial
         this.fragmentShader =this.applyDefines(FragShader);
         this.needsUpdate = true;
     }
+    
+    get size() {
+        return this.getUniform('size');
+    }
+    
+    set size(value) {
+        this.setUniformValue(value, 'size');
+    }
+    setUniformValue(value, uniformName) {
+        if (value !== this.getUniform(uniformName)) 
+            {
+                this.setUniform(uniformName, value);
+                if (requireSrcUpdate) 
+                {
+                    this.updateShaderSource();
+                }
+        }
+    }
     applyDefines(shaderSrc) {
         const parts = [];
         function define(value) {
@@ -39,4 +57,28 @@ export class PointsMaterial extends RawShaderMaterial
         parts.push(shaderSrc);
         return parts.join('\n');
     }
+}
+
+function uniform(uniformName, requireSrcUpdate = false) 
+{
+	return (target, propertyKey) => 
+	{
+		Object.defineProperty(target, propertyKey, {
+			get: function() 
+			{
+				return this.getUniform(uniformName);
+			},
+			set: function(value) 
+			{
+				if (value !== this.getUniform(uniformName)) 
+				{
+					this.setUniform(uniformName, value);
+					if (requireSrcUpdate) 
+					{
+						this.updateShaderSource();
+					}
+				}
+			}
+		});
+	};
 }
