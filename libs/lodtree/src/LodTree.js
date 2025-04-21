@@ -59,6 +59,14 @@ export class LodTree {
                     nodesToLoad.push(node);
                 }
             }
+            if (!node.isGeometryNode) 
+            {
+                const sceneNode = node.points;    
+                sceneNode.visible = true;
+                sceneNode.material = pointCloud.material;
+                sceneNode.updateMatrix();
+                sceneNode.matrixWorld.multiplyMatrices(pointCloud.matrixWorld, sceneNode.matrix);
+            }
             // getSize ( target : Vector2 ) : Vector2  
             // target — the result will be copied into this Vector2.
 			const halfHeight = 0.5 * renderer.getSize(this._rendererSize).height * renderer.getPixelRatio();
@@ -181,6 +189,8 @@ export class LodTree {
             camera.updateMatrixWorld(true);
             // 更新投影矩阵
             camera.updateProjectionMatrix();
+            // console.log(camera.projectionMatrix, 'camera.projectionMatrix');
+            
             pvMatrix.multiplyMatrices(
                 camera.projectionMatrix,
                 camera.matrixWorldInverse

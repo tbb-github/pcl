@@ -27,3 +27,7 @@ export const PointColorType = {
     RGB_HEIGHT:13,
     COMPOSITE :50,
 }
+export const ColorEncoding = {
+    LINEAR:0,
+    SRGB:1,
+  }

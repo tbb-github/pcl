@@ -17,6 +17,7 @@ document.body.onload = async function () {
 	document.body.appendChild(canvas);
 	const controls = new OrbitControls(camera, canvas);
 	camera.position.z = 10;
+	scene.add(new THREE.AmbientLight(0xffffff));
 	const renderer = new THREE.WebGLRenderer(
 		{
 			canvas: canvas,
@@ -28,12 +29,16 @@ document.body.onload = async function () {
 			preserveDrawingBuffer: false,
 			powerPreference: 'high-performance'
 	});
-    renderer.setClearColor(0xb9d3ff, 1); //设置背景颜色
+    // renderer.setClearColor(0xb9d3ff, 1); //设置背景颜色
     const loadTree = new LodTree();
     let pointClouds = [];
     let baseUrl = '../public/pump';
     let url = 'metadata.json';
     let pco = await loadTree.loadPointCloud(url, ()=>{return `${baseUrl}/${url}`});
+	pco.material.size = 2.0;
+	pco.material.inputColorEncoding = 1;
+	pco.material.outputColorEncoding = 1;
+	scene.add(pco);
     pointClouds.push(pco);
     function loop()
 	{
@@ -43,4 +48,16 @@ document.body.onload = async function () {
 		requestAnimationFrame(loop);
 	}
 	loop();
+	document.body.onresize = function()
+	{
+		const width = window.innerWidth;
+		const height = window.innerHeight;
+
+		renderer.setSize(width, height);
+		camera.aspect = width / height;
+		camera.updateProjectionMatrix();
+	};
+	
+	// @ts-ignore
+	document.body.onresize();
 }

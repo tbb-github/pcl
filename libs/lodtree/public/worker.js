@@ -40,7 +40,6 @@ self.onmessage = function(event) {
 	// 使用这个 grid 数组来表示或处理三维空间中的数据，您可能需要进一步定义如何映射这些扁平的数组索引到三维空间中的坐标。通常，这可以通过简单的数学运算来实现，例如使用三维坐标 (x, y, z) 来计算一维索引 index = x + y* gridSize  + z * gridSize * gridSize
 	// 就是三维数组转一维数组坐标，arr[4][4] 下标就是x+y*4 arr[4][4][4]
 	let attributeOffset = 0; //属性字节偏移量，每到下一个属性时会变化
-	console.log(numPoints, 'numPoints');
 	let view = new DataView(buffer);
 	// 在worker.js中完成对请求来的bin文件的buffer数据解析，根据规则把对应属性的buffer生成出来
 	let numOccupiedCells = 0;
@@ -151,7 +150,6 @@ self.onmessage = function(event) {
 		transferables.push(message.attributeBuffers[property].buffer);
 	}
 	transferables.push(buffer);
-	console.log(message, transferables, 'message, transferables');
 	postMessage(message, transferables)
 	// 具体计算...
 	// 将结果范围给主线程

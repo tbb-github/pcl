@@ -21,7 +21,6 @@
   */
 import {OctreeGeometryNode} from './Octree.Geometry.Node.js';
 import * as THREE from '../library/three.module.js'
-let result = []
 export class NodeLoader {
     constructor(url) {
         this.url = url;
@@ -59,8 +58,6 @@ export class NodeLoader {
                         'Range': `bytes=${first}-${last}`
                     }
                 })
-                result.push([first,last])
-                console.log(result, 'resultresult');
                 buffer = await response.arrayBuffer();
             }
             let pointAttributes = node.octreeGeometry.pointAttributes;
@@ -102,12 +99,11 @@ export class NodeLoader {
             worker.postMessage(message, [message.buffer]); // 发送数字 10，Worker 将计算 10 的平方
 
             // 监听 Worker 返回的消息
+
             worker.onmessage = function(event) {
-                console.log('从 Worker 接收到的数据:', event.data); //
                 let data = event.data;
                 let buffers = data.attributeBuffers;
                 let geometry = new THREE.BufferGeometry();
-                console.log(buffers, 'buffers');
                 for (let property in buffers) {
                     let buffer = buffers[property].buffer;
                     if (property === 'position') {
@@ -133,11 +129,12 @@ export class NodeLoader {
                         }
                         geometry.setAttribute(property, bufferAttribute)
                     }
-                    node.density = data.density;
-                    node.geometry = geometry;
-                    node.loaded = true;
-                    node.loading = false;
                 }
+                node.density = data.density;
+                node.geometry = geometry;
+                node.loaded = true;
+                node.loading = false;
+                node.octreeGeometry.numNodesLoading--;
             };
 
             // 错误处理
@@ -243,6 +240,8 @@ export class NodeLoader {
                 nodes[nodePos] = childOctreeNode;
                 nodePos++;
             }
+
+            
            
         }
     }

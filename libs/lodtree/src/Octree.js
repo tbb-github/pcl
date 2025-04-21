@@ -11,19 +11,18 @@ export class Octree extends Object3D {
     constructor(octreeGeometry, material){
         super();
         this.geometry = octreeGeometry;
-        this.material = material || new PointsMaterial();
+        this.material = material || new PointsMaterial({newFormat: true});
         this.position.copy(octreeGeometry.offset);;//offset min值
 		this.updateMatrix();
+		this.updateMatrixWorld(true);
     }
     toTreePoints(node, parent) {
-        // console.log(node, this.material, 'vvv');
         const points = new Points(node.geometry, this.material);
 		points.name = node.name;
 		points.position.copy(node.boundingBox.min);
 		node.points = points;
 		node.isGeometryNode = false;
         if (parent) {
-            console.log('parent');
             parent.points.add(points);//父元素的points点集添加子元素点集
 			parent.children[node.index] = node;
         } else {
